@@ -6,6 +6,7 @@
 
 #include <cs50.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "helpers.h"
 
@@ -17,6 +18,36 @@ bool search(int value, int values[], int n)
     // TODO: implement a searching algorithm
     // Binary search
 
+    int mid = n/2;
+    int newN;
+
+    while(n > 0)
+    {
+
+        if(n%2 == 0)
+        {
+            newN = n - n/2;
+        }
+        else
+        {
+            newN = n - n/2 - 1;
+        }
+
+        if(value > values[mid])
+        {
+            mid = mid + (newN + 1)/2;
+            n = newN;
+        }
+        else if(value < values[mid])
+        {
+            mid = mid - newN/2 - 1;
+            n = newN;
+        }
+        else
+        {
+            return true;
+        }
+    }
 
     return false;
 }
@@ -58,4 +89,27 @@ void sort(int values[], int n)
     }
 
     return;
+}
+
+void countingSort(int values[], int n)
+{
+    int count[65536] = {0};
+
+    for(int i = 0; i < n; i++)
+    {
+        count[values[i]]++;
+    }
+
+    for(int i = 0, j = 0; i < 65536; i++)
+    {
+        if(count[i] > 0)
+        {
+            for(int k = j; k < count[i]; k++)
+            {
+                values[k] = count[i];
+            }
+            j += count[i];
+        }
+    }
+
 }
