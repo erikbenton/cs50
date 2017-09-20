@@ -2,28 +2,18 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-typedef uint8_t  BYTE;
-
-typedef struct
-{
-    BYTE first;
-    BYTE second;
-    BYTE third;
-    BYTE fourth;
-} __attribute__((__packed__))
-BLOCK;
-
-
+#define BUFFER_SIZE 512
 
 int main(int argc, char *argv[])
 {
-    int count = 0;
+
+    // Checks for the right command-line inputs
     if(argc != 2)
     {
         fprintf(stderr, "Usage: ./recover image\n");
         return 1;
     }
-    // remember filenames
+    // remember filename
     char *infile = argv[1];
 
     // open input file
@@ -34,30 +24,52 @@ int main(int argc, char *argv[])
         return 2;
     }
 
-    while(count < 50)
+    // Bool for if a JPEG has been found
+    int foundJPEG = 0;
+
+    // Create place to hold block of bytes
+    unsigned char buffer[BUFFER_SIZE];
+
+    // Pointer for writing to file
+    FILE *outptr = NULL;
+
+    // Count of how many JPEGs found
+    int count = 0;
+
+    // Read from file until no more blocks
+    while(fread(buffer, BUFFER_SIZE, 1, inptr) == 1)
     {
-        BLOCK block;
 
-        // read BLOCK from infile
-        fread(&block, sizeof(BLOCK), 1, inptr);
-
-        if(block.first == 0xff && block.second == 0xd8 && block.third == 0xff)
+        // Check for beginning of block
+        if(buffer[0] == 0xff && buffer[1] == 0xd8 && buffer[2] == 0xff && (buffer[3] & 0xe0) == 0xe0)
         {
-            printf("HERE\n");
+            if(foundJPEG == 1)
+            {
+                fclose(outptr);
+            }
+            else
+            {
+                foundJPEG = 1;
+            }
 
             count++;
-            char outfile [7];
+            char outfile [8];
             sprintf (outfile, "%03i.jpg",count);
 
-            FILE *outptr = fopen(outfile, "w");
-            // write outfile's BITMAPINFOHEADER
-            fwrite(&block, sizeof(BLOCK), 1, outptr);
-
-
+            outptr = fopen(outfile, "w");
 
         }
 
-        fseek(inptr, 512-sizeof(BLOCK), SEEK_CUR);
+        if(foundJPEG == 1)
+        {
+            fwrite(&buffer, BUFFER_SIZE, 1, outptr);
+        }
+
     }
+
+    fclose(outptr);
+    fclose(inptr);
+
+    return 0;
 
 }
