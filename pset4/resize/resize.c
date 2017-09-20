@@ -65,21 +65,21 @@ int main(int argc, char *argv[])
     int oldPadding = (4 - (bi.biWidth * sizeof(RGBTRIPLE)) % 4) % 4;
 
 
-    printf("bfSize: %x  biSizeImage: %x  biWidth: %x   biHeight: %x\n",
-            bf.bfSize, bi.biSizeImage, bi.biWidth, bi.biHeight);
+    printf("bfSize: %x  biSizeImage: %x  biWidth: %x   biHeight: %x  padding: %x\n",
+            bf.bfSize, bi.biSizeImage, bi.biWidth, bi.biHeight, oldPadding);
 
     bi.biWidth = bi.biWidth * size;
     bi.biHeight = bi.biHeight * size;
 
 
-    // determine padding for scanlines
-    int newPadding = (4 - (bi.biWidth * sizeof(RGBTRIPLE)) % 4) % 4;
+    // determine new padding for scanlines
+    int newPadding = (oldPadding * size) % 4;
 
     bi.biSizeImage = (bi.biWidth * sizeof(RGBTRIPLE) + newPadding )* abs(bi.biHeight);
     bf.bfSize = bi.biSizeImage + 0x36;
 
-    printf("bfSize: %x  biSizeImage: %x  biWidth: %x   biHeight: %x\n",
-            bf.bfSize, bi.biSizeImage, bi.biWidth, bi.biHeight);
+    printf("bfSize: %x  biSizeImage: %x  biWidth: %x   biHeight: %x  padding: %x\n",
+            bf.bfSize, bi.biSizeImage, bi.biWidth, bi.biHeight, newPadding);
 
      // write outfile's BITMAPFILEHEADER
     fwrite(&bf, sizeof(BITMAPFILEHEADER), 1, outptr);
@@ -105,21 +105,20 @@ int main(int argc, char *argv[])
                 // read RGB triple from infile
                 fread(&triple, sizeof(RGBTRIPLE), 1, inptr);
 
-                for(int k = 0; k < size; k++)
+                for(int m = 0; m < size; m++)
                 {
                     // write RGB triple to outfile
                     fwrite(&triple, sizeof(RGBTRIPLE), 1, outptr);
                 }
+            }
 
-                // skip over padding, if any
-                fseek(inptr, oldPadding, SEEK_CUR);
+            // skip over padding, if any
+            fseek(inptr, oldPadding, SEEK_CUR);
 
-                // then add it back (to demonstrate how)
-                for (int k = 0; k < newPadding; k++)
-                {
-                    fputc(0x00, outptr);
-                }
-
+            // then add it back (to demonstrate how)
+            for (int k = 0; k < newPadding; k++)
+            {
+                fputc(0x00, outptr);
             }
 
             if(l < size-1)
