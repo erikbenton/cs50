@@ -28,17 +28,35 @@ node;
 node *hashTable[26];
 
 
-
-// Hash Table
-    // Creates array of LLs
-    // node *hashtable[26]
-
 /**
  * Returns true if word is in dictionary else false.
  */
 bool check(const char *word)
 {
-    // TODO
+    int index = tolower(word[0]) - 'a';
+
+    //node *checked_word = malloc(sizeof(node));
+    node *checked_word = hashTable[index];
+
+    if(checked_word == NULL)
+    {
+        free(checked_word);
+        return false;
+    }
+
+    while(checked_word != NULL)
+    {
+        if(strcmp(checked_word->word, word) == 0)
+        {
+            free(checked_word);
+            return true;
+        }
+
+        checked_word = checked_word->next;
+
+    }
+
+    free(checked_word);
     return false;
 }
 
@@ -87,8 +105,32 @@ bool load(const char *dictionary)
  */
 unsigned int size(void)
 {
-    // TODO
-    return 0;
+
+    int count = 0;
+
+    for(int i = 0; i < 26; i++)
+    {
+        //node *currWord = malloc(sizeof(node));
+        node *currWord = hashTable[i];
+
+        if(currWord == NULL)
+        {
+            continue;
+        }
+
+        while(currWord != NULL)
+        {
+            count++;
+
+            currWord = currWord->next;
+
+        }
+        free(currWord);
+
+    }
+
+
+    return count;
 }
 
 /**
@@ -96,6 +138,20 @@ unsigned int size(void)
  */
 bool unload(void)
 {
-    // TODO
-    return false;
+    for(int i = 0; i < 26; i++)
+    {
+
+        //node *cursor = malloc(sizeof(node));
+
+        node *cursor = hashTable[i];
+
+        while(cursor != NULL)
+        {
+            //node *temp = malloc(sizeof(node));
+            node *temp = cursor;
+            cursor = cursor->next;
+            free(temp);
+        }
+    }
+    return true;
 }

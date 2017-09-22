@@ -12,7 +12,7 @@
 #undef getrusage
 
 // default dictionary
-#define DICTIONARY "dictionaries/small"
+#define DICTIONARY "dictionaries/large"
 
 // prototype
 double calculate(const struct rusage *b, const struct rusage *a);
