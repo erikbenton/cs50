@@ -7,7 +7,7 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 
-#include "dictionary.h"
+#include "test.h"
 #undef calculate
 #undef getrusage
 

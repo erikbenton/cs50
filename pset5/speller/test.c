@@ -85,36 +85,32 @@ bool load(const char *dictionary)
 
     FILE *outptr = fopen(dictionary, "r");
 
-    while(true)
+    char word[LENGTH+1];
+
+
+    while(fscanf(outptr, "%s", word) != EOF)
     {
         node *new_node = malloc(sizeof(node));
+        count++;
 
         if(new_node == NULL)
         {
-            printf("Could not malloc new node");
             unload();
             fclose(outptr);
             return false;
         }
-
-        fscanf(outptr, "%s", new_node->word);
-        new_node->next = NULL;
-
-        if(feof(outptr))
-        {
-            free(new_node);
-            break;
-        }
-
-        count++;
+        strcpy(new_node->word, word);
 
         int index = tolower(new_node->word[0]) - 'a';
 
         new_node->next = hashTable[index];
         hashTable[index] = new_node;
+
     }
 
+    free(new_node);
     fclose(outptr);
+
     return true;
 }
 
