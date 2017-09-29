@@ -6,6 +6,10 @@ from tempfile import mkdtemp
 
 from helpers import *
 
+####################################
+##      CONFIG STUFF
+####################################
+
 # configure application
 app = Flask(__name__)
 
@@ -30,22 +34,69 @@ Session(app)
 # configure CS50 Library to use SQLite database
 db = SQL("sqlite:///finance.db")
 
+####################################
+##  ROUTES
+####################################
+
+############
+#   Index
+############
+
 @app.route("/")
 @login_required
 def index():
     return apology("TODO")
 
+############
+#   Buy
+############
+
 @app.route("/buy", methods=["GET", "POST"])
 @login_required
 def buy():
-    """Buy shares of stock."""
+
+    # if user reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+
+        # ensure symbol was submitted
+        if not request.form.get("symbol"):
+            return apology("must provide username")
+
+        quote = lookup(request.form.get("symbol"))
+
+        if not quote:
+            return apology("must provide a real stock symbol")
+
+        if int(request.form.get("number")) < 1:
+            return apology("Please enter an integer greater than 0")
+
+
+        user_money = db.execute("SELECT cash FROM users WHERE id = '{}'".format(session["user_id"]))
+        req_money = int(quote["price"]) * int(request.form.get("number"))
+
+
+        if user_money[0]["cash"] < req_money:
+            return apology("You do not have enough funds")
+
+    # else if user reached route via GET (as by clicking a link or via redirect)
+    else:
+        return render_template("buy.html")
+
     return apology("TODO")
+
+############
+#   History
+############
 
 @app.route("/history")
 @login_required
 def history():
     """Show history of transactions."""
     return apology("TODO")
+
+############
+#   Login
+############
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -82,6 +133,10 @@ def login():
     else:
         return render_template("login.html")
 
+############
+#   Logout
+############
+
 @app.route("/logout")
 def logout():
     """Log user out."""
@@ -91,6 +146,11 @@ def logout():
 
     # redirect user to login form
     return redirect(url_for("login"))
+
+
+############
+#   Quote
+############
 
 @app.route("/quote", methods=["GET", "POST"])
 @login_required
@@ -102,7 +162,7 @@ def quote():
         if not request.form.get("symbol"):
             return apology("must provide stock symbol")
 
-        quote = helpers.lookup(request.form.get(symbol))
+        quote = lookup(request.form.get("symbol"))
 
         if not quote:
             return apology("must provide a real stock symbol")
@@ -112,7 +172,11 @@ def quote():
 
     # else if user reached route via GET (as by clicking a link or via redirect)
     else:
-        return render_template("login.html")
+        return render_template("quote.html")
+
+############
+#   Register
+############
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -148,6 +212,11 @@ def register():
     # else if user reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("register.html")
+
+
+############
+#   Sell
+############
 
 @app.route("/sell", methods=["GET", "POST"])
 @login_required
