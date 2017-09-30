@@ -6,6 +6,8 @@ from tempfile import mkdtemp
 
 from helpers import *
 
+import time
+
 ####################################
 ##      CONFIG STUFF
 ####################################
@@ -45,6 +47,12 @@ db = SQL("sqlite:///finance.db")
 @app.route("/")
 @login_required
 def index():
+
+    #look up stocks for user
+    stocks = db.execute("SELECT * FROM 'portfolio' WHERE id = '{}'".format(session["user_id"]))
+
+    #sum up stocks for each company
+
     return apology("TODO")
 
 ############
@@ -81,14 +89,7 @@ def buy():
         if user_money[0]["cash"] < req_money:
             return apology("You do not have enough funds")
 
-        #See if user already has that stock
-        rows = db.execute("SELECT * FROM portfolio WHERE id = '{}' AND symbol = '{}'".format(session["user_id"], request.form.get("symbol")))
-
-        #If they have that stock
-        if len(rows) > 0:
-            db.execute("UPDATE 'portfolio' SET shares = '{}'  WHERE id = '{}' AND symbol = '{}'".format(int(rows[0]["shares"]) + int(request.form.get("number")), session["user_id"], request.form.get("symbol")))
-        else: #If they don't have that stock
-            db.execute("INSERT INTO 'portfolio' (id, symbol, shares) VALUES ('{}', '{}', '{}')".format(session["user_id"], request.form.get("symbol"), int(request.form.get("number"))))
+        db.execute("INSERT INTO 'portfolio' (id, symbol, shares, time) VALUES ('{}', '{}', '{}', '{}')".format(session["user_id"], request.form.get("symbol"), int(request.form.get("number")), time.asctime( time.localtime(time.time()) )))
 
         #Update their money
         db.execute("UPDATE 'users' SET cash = '{}' WHERE id = '{}'".format(user_money[0]["cash"]-req_money, session["user_id"]))
