@@ -62,21 +62,39 @@ def buy():
         if not request.form.get("symbol"):
             return apology("must provide username")
 
+        #Look up the stock for given symbol
         quote = lookup(request.form.get("symbol"))
 
+        #If there is no stock for that symbol
         if not quote:
             return apology("must provide a real stock symbol")
 
+        #If they aren't buying a positive amount of stocks
         if int(request.form.get("number")) < 1:
             return apology("Please enter an integer greater than 0")
 
-
+        #Get how much money user has and how much they will need
         user_money = db.execute("SELECT cash FROM users WHERE id = '{}'".format(session["user_id"]))
         req_money = int(quote["price"]) * int(request.form.get("number"))
 
-
+        #If user doesn't have enough money
         if user_money[0]["cash"] < req_money:
             return apology("You do not have enough funds")
+
+        #See if user already has that stock
+        rows = db.execute("SELECT * FROM portfolio WHERE id = '{}' AND symbol = '{}'".format(session["user_id"], request.form.get("symbol")))
+
+        #If they have that stock
+        if len(rows) > 0:
+            db.execute("UPDATE 'portfolio' SET shares = '{}'  WHERE id = '{}' AND symbol = '{}'".format(int(rows[0]["shares"]) + int(request.form.get("number")), session["user_id"], request.form.get("symbol")))
+        else: #If they don't have that stock
+            db.execute("INSERT INTO 'portfolio' (id, symbol, shares) VALUES ('{}', '{}', '{}')".format(session["user_id"], request.form.get("symbol"), int(request.form.get("number"))))
+
+        #Update their money
+        db.execute("UPDATE 'users' SET cash = '{}' WHERE id = '{}'".format(user_money[0]["cash"]-req_money, session["user_id"]))
+
+        #Redirect back to index
+        return redirect(url_for("index"))
 
     # else if user reached route via GET (as by clicking a link or via redirect)
     else:
