@@ -49,11 +49,28 @@ db = SQL("sqlite:///finance.db")
 def index():
 
     #look up stocks for user
-    stocks = db.execute("SELECT * FROM 'portfolio' WHERE id = '{}'".format(session["user_id"]))
+    entries = db.execute("SELECT * FROM 'portfolio' WHERE id = '{}'".format(session["user_id"]))
+    user = db.execute("SELECT * FROM users WHERE id = '{}'".format(session["user_id"]))
+    stocks = []
 
+    for entry in entries:
+        stock = {
+            "symbol": "",
+            "name": "",
+            "shares": 0,
+            "price": 0
+        }
+
+        current = lookup(entry["symbol"])
+
+        stock["symbol"] = entry["symbol"]
+        stock["price"] = current["price"]
+        stock["name"] = current["name"]
+        stock["shares"] = entry["shares"]
+        stocks.append(stock)
+
+    return render_template("index.html", user=user[0], stocks=stocks)
     #sum up stocks for each company
-
-    return apology("TODO")
 
 ############
 #   Buy
@@ -89,7 +106,7 @@ def buy():
         if user_money[0]["cash"] < req_money:
             return apology("You do not have enough funds")
 
-        db.execute("INSERT INTO 'portfolio' (id, symbol, shares, time) VALUES ('{}', '{}', '{}', '{}')".format(session["user_id"], request.form.get("symbol"), int(request.form.get("number")), time.asctime( time.localtime(time.time()) )))
+        db.execute("INSERT INTO 'portfolio' (id, symbol, shares, price, time) VALUES ('{}', '{}', '{}', '{}', '{}')".format(session["user_id"], request.form.get("symbol"), int(request.form.get("number")), int(quote["price"]), time.asctime( time.localtime(time.time()) )))
 
         #Update their money
         db.execute("UPDATE 'users' SET cash = '{}' WHERE id = '{}'".format(user_money[0]["cash"]-req_money, session["user_id"]))
