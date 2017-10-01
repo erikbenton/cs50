@@ -49,16 +49,18 @@ db = SQL("sqlite:///finance.db")
 def index():
 
     #look up stocks for user
-    entries = db.execute("SELECT * FROM 'portfolio' WHERE id = '{}'".format(session["user_id"]))
+    entries = db.execute("SELECT *, SUM(shares) FROM portfolio WHERE id = '{}' GROUP BY symbol".format(session["user_id"]))
     user = db.execute("SELECT * FROM users WHERE id = '{}'".format(session["user_id"]))
     stocks = []
+    total_value = user[0]["cash"]
 
     for entry in entries:
         stock = {
             "symbol": "",
             "name": "",
             "shares": 0,
-            "price": 0
+            "price": 0,
+            "value": 0
         }
 
         current = lookup(entry["symbol"])
@@ -66,10 +68,12 @@ def index():
         stock["symbol"] = entry["symbol"]
         stock["price"] = current["price"]
         stock["name"] = current["name"]
-        stock["shares"] = entry["shares"]
+        stock["shares"] = entry["SUM(shares)"]
+        stock["value"] = current["price"] * entry["SUM(shares)"]
+        total_value += stock["value"]
         stocks.append(stock)
 
-    return render_template("index.html", user=user[0], stocks=stocks)
+    return render_template("index.html", user=user[0], stocks=stocks, total_value = total_value)
     #sum up stocks for each company
 
 ############
@@ -100,7 +104,7 @@ def buy():
 
         #Get how much money user has and how much they will need
         user_money = db.execute("SELECT cash FROM users WHERE id = '{}'".format(session["user_id"]))
-        req_money = int(quote["price"]) * int(request.form.get("number"))
+        req_money = quote["price"] * int(request.form.get("number"))
 
         #If user doesn't have enough money
         if user_money[0]["cash"] < req_money:

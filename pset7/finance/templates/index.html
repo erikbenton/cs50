@@ -13,22 +13,26 @@
                 <th>Name</th>
                 <th>Shares</th>
                 <th>Price</th>
-                <th>Total</th>
+                <th>TOTAL</th>
             </tr>
         </thead>
         <tbody>
             {% for stock in stocks %}
                 <tr>
-                    <th scope="row">{{stock["symbol"].upper()}}</th>
+                    <td scope="row">{{stock["symbol"].upper()}}</td>
                     <td>{{ stock.name }}</td>
                     <td>{{ stock.shares }}</td>
-                    <td>${{ stock.price }}</td>
-                    <td>${{ stock.shares * stock.price }}</td>
+                    <td>${{ "{:,.2f}".format(stock.price) }}</td>
+                    <td>${{ "{:,.2f}".format(stock.shares * stock.price) }}</td>
                 </tr>
             {% endfor %}
             <tr>
-                <th scope="row" colspan="4">CASH</th>
-                <td>${{ user["cash"] }}</td>
+                <td scope="row" colspan="4">CASH</td>
+                <td>${{ "{:,.2f}".format(user["cash"]) }}</td>
+            </tr>
+            <tr>
+                <td scope="row" colspan="4"></td>
+                <td><strong>${{ "{:,.2f}".format(total_value) }}</strong></td>
             </tr>
         </tbody>
     </table>
