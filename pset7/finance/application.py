@@ -122,8 +122,6 @@ def buy():
     else:
         return render_template("buy.html")
 
-    return apology("TODO")
-
 ############
 #   History
 ############
@@ -261,5 +259,42 @@ def register():
 @app.route("/sell", methods=["GET", "POST"])
 @login_required
 def sell():
-    """Sell shares of stock."""
-    return apology("TODO")
+    # if user reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+
+        # ensure symbol was submitted
+        if not request.form.get("symbol"):
+            return apology("must provide username")
+
+        #Look up the stock for given symbol
+        quote = lookup(request.form.get("symbol"))
+
+        #If there is no stock for that symbol
+        if not quote:
+            return apology("must provide a real stock symbol")
+
+        #If they aren't selling a positive amount of stocks
+        if int(request.form.get("number")) < 1:
+            return apology("Please enter an integer greater than 0")
+
+        #Get how many stocks the user has
+        user_stock = db.execute("SELECT *, SUM(shares) FROM portfolio WHERE id = '{}' AND symbol = '{}'".format(session["user_id"], request.form.get("symbol")))
+        user = db.execute("SELECT * FROM users WHERE id = '{}'".format(session["user_id"]))
+
+        if user_stock[0]["SUM(shares)"] < int(request.form.get("number")):
+            return apology("You do not have enough stock")
+
+        #Get how much money they will receive
+        received_money = quote["price"] * int(request.form.get("number"))
+
+
+        #Update their money
+        db.execute("UPDATE 'users' SET cash = '{}' WHERE id = '{}'".format(user[0]["cash"]+received_money, session["user_id"]))
+        db.execute("INSERT INTO 'portfolio' (id, symbol, shares, price, time) VALUES ('{}', '{}', '{}', '{}', '{}')".format(session["user_id"], request.form.get("symbol"), -int(request.form.get("number")), int(quote["price"]), time.asctime( time.localtime(time.time()) )))
+
+        #Redirect back to index
+        return redirect(url_for("index"))
+
+    # else if user reached route via GET (as by clicking a link or via redirect)
+    else:
+        return render_template("sell.html")
