@@ -74,7 +74,6 @@ def index():
         stocks.append(stock)
 
     return render_template("index.html", user=user[0], stocks=stocks, total_value = total_value)
-    #sum up stocks for each company
 
 ############
 #   Buy
@@ -129,8 +128,13 @@ def buy():
 @app.route("/history")
 @login_required
 def history():
-    """Show history of transactions."""
-    return apology("TODO")
+
+    #look up stocks for user
+    entries = db.execute("SELECT * FROM portfolio WHERE id = '{}' ORDER BY time".format(session["user_id"]))
+    user = db.execute("SELECT * FROM users WHERE id = '{}'".format(session["user_id"]))
+
+
+    return render_template("history.html", user=user[0], stocks=entries)
 
 ############
 #   Login
