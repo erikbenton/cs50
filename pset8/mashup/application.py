@@ -46,7 +46,6 @@ def search():
     else:
         res = db.execute("SELECT * FROM places WHERE place_name = '{}'".format(query[0]))
 
-    # TODO
     return jsonify(res)
 
 @app.route("/update")

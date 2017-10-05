@@ -37,7 +37,7 @@ $(function() {
     // options for map
     // https://developers.google.com/maps/documentation/javascript/reference#MapOptions
     var options = {
-        center: {lat: 37.4236, lng: -122.1619}, // Stanford, California
+        center: {lat: 47.608013, lng: -122.335167}, // Stanford, California
         disableDefaultUI: true,
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         maxZoom: 14,
@@ -63,7 +63,20 @@ $(function() {
  */
 function addMarker(place)
 {
-    // TODO
+    var marker = new google.maps.Marker({
+    position: {lat: place["latitude"], lng: place["longitude"]},
+    map: map,
+    title: place["place_name"]
+    });
+
+    marker.addListener("click", function(){
+        info.setContent("{% for i in range(3): %} <li>{{ i }}</li> {% endfor %}");
+        info.open(map, marker);
+
+    });
+
+    markers.push(marker);
+
 }
 
 /**
@@ -99,7 +112,7 @@ function configure()
         templates: {
             suggestion: Handlebars.compile(
                 "<div>" +
-                "TODO" +
+                "{{place_name}}, {{admin_name1}}, {{postal_code}}" +
                 "</div>"
             )
         }
@@ -123,8 +136,8 @@ function configure()
     // re-enable ctrl- and right-clicking (and thus Inspect Element) on Google Map
     // https://chrome.google.com/webstore/detail/allow-right-click/hompjdfbfmmmgflfjdlnkohcplmboaeo?hl=en
     document.addEventListener("contextmenu", function(event) {
-        event.returnValue = true; 
-        event.stopPropagation && event.stopPropagation(); 
+        event.returnValue = true;
+        event.stopPropagation && event.stopPropagation();
         event.cancelBubble && event.cancelBubble();
     }, true);
 
@@ -140,7 +153,9 @@ function configure()
  */
 function removeMarkers()
 {
-    // TODO
+    markers.forEach(function(marker){
+        marker.setMap(null);
+    });
 }
 
 /**
@@ -154,7 +169,7 @@ function search(query, syncResults, asyncResults)
     };
     $.getJSON(Flask.url_for("search"), parameters)
     .done(function(data, textStatus, jqXHR) {
-     
+
         // call typeahead's callback with search results (i.e., places)
         asyncResults(data);
     })
@@ -198,7 +213,7 @@ function showInfo(marker, content)
 /**
  * Updates UI's markers.
  */
-function update() 
+function update()
 {
     // get map's bounds
     var bounds = map.getBounds();
