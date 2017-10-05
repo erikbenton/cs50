@@ -38,10 +38,13 @@ def articles():
 @app.route("/search")
 def search():
     """Search for places that match query."""
-    query = request.args.get("q")
+    query = request.args.get("q").split(" ")
 
-    if query[0] >= "0" and query[0] <= "9":
-        res = db.execute("SELECT * FROM places WHERE postal_code = '{}'".format(query))
+    if query[0][0] >= "0" and query[0][0] <= "9":
+        res = db.execute("SELECT * FROM places WHERE postal_code = '{}'".format(query[0]))
+
+    else:
+        res = db.execute("SELECT * FROM places WHERE place_name = '{}'".format(query[0]))
 
     # TODO
     return jsonify(res)
