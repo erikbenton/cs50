@@ -6,6 +6,10 @@ from flask_jsglue import JSGlue
 from cs50 import SQL
 from helpers import lookup
 
+#########################################
+##  CONFIGURE
+#########################################
+
 # configure application
 app = Flask(__name__)
 JSGlue(app)
@@ -22,6 +26,10 @@ if app.config["DEBUG"]:
 # configure CS50 Library to use SQLite database
 db = SQL("sqlite:///mashup.db")
 
+#########################################
+##  HOME ROUTE
+#########################################
+
 @app.route("/")
 def index():
     """Render map."""
@@ -29,11 +37,19 @@ def index():
         raise RuntimeError("API_KEY not set")
     return render_template("index.html", key=os.environ.get("API_KEY"))
 
+#########################################
+##  ARTICLES ROUTE
+#########################################
+
 @app.route("/articles")
 def articles():
     """Look up articles for geo."""
 
     return jsonify(lookup(request.args.get("geo")))
+
+#########################################
+##  SEARCH ROUTE
+#########################################
 
 @app.route("/search")
 def search():
@@ -47,6 +63,10 @@ def search():
         res = db.execute("SELECT * FROM places WHERE place_name = '{}'".format(query[0]))
 
     return jsonify(res)
+
+#########################################
+##  UPDATE ROUTE
+#########################################
 
 @app.route("/update")
 def update():

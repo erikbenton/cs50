@@ -63,14 +63,39 @@ $(function() {
  */
 function addMarker(place)
 {
+    var html = "<ul>";
+    var parameters = {
+        geo: place["postal_code"]
+    };
     var marker = new google.maps.Marker({
     position: {lat: place["latitude"], lng: place["longitude"]},
     map: map,
     title: place["place_name"]
     });
 
+    $.getJSON(Flask.url_for("articles"), parameters)
+    .done(function(data) {
+
+        data.forEach(function(article){
+            html += "<li><a href='" + article["link"] + "'>"
+                + article["title"]
+                + "</a></li>"
+        });
+
+        html += "</ul>";
+
+    })
+    .fail(function(jqXHR, textStatus, errorThrown) {
+
+        // log error to browser's console
+        console.log(errorThrown.toString());
+
+    });
+
+
+
     marker.addListener("click", function(){
-        info.setContent("{% for i in range(3): %} <li>{{ i }}</li> {% endfor %}");
+        info.setContent(html);
         info.open(map, marker);
 
     });
